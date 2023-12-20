@@ -8,7 +8,7 @@ MdMusicPlayer mmplay;
 MdMeasureDistance mmdist;
 MdDateTime mdtime;
 
-const char* g_str_orange[] = {
+const char *g_str_orange[] = {
     COMMON_ORANGE0_IMG_PATH,
     COMMON_ORANGE1_IMG_PATH,
     COMMON_ORANGE2_IMG_PATH,
@@ -21,7 +21,7 @@ const char* g_str_orange[] = {
     COMMON_ORANGE9_IMG_PATH,
 };
 
-const char* g_str_blue[] = {
+const char *g_str_blue[] = {
     COMMON_BLUE0_IMG_PATH,
     COMMON_BLUE1_IMG_PATH,
     COMMON_BLUE2_IMG_PATH,
@@ -94,71 +94,248 @@ void AppControl::setFocusState(FocusState fs)
 
 void AppControl::displayTitleInit()
 {
-    mlcd.displayJpgImageCoordinate(TITLE_IMG_PATH,0,0);
+    mlcd.displayJpgImageCoordinate(TITLE_IMG_PATH, TITLE_X_CRD, TITLE_Y_CRD);
 }
 
 void AppControl::displayMenuInit()
 {
+    mlcd.clearDisplay();
+    mlcd.fillBackgroundWhite();
+    mlcd.displayJpgImageCoordinate(MENU_WBGT_IMG_PATH, MENU_WBGT_X_CRD, MENU_WBGT_Y_CRD);
+    mlcd.displayJpgImageCoordinate(MENU_MUSIC_IMG_PATH, MENU_MUSIC_X_CRD, MENU_MUSIC_Y_CRD);
+    mlcd.displayJpgImageCoordinate(MENU_MEASURE_IMG_PATH, MENU_MEASURE_X_CRD, MENU_MEASURE_Y_CRD);
+    mlcd.displayJpgImageCoordinate(MENU_DATE_IMG_PATH, MENU_DATE_X_CRD, MENU_DATE_Y_CRD);
+    mlcd.displayJpgImageCoordinate(COMMON_BUTTON_UP_IMG_PATH, MENU_UP_X_CRD, MENU_UP_Y_CRD);
+    mlcd.displayJpgImageCoordinate(COMMON_BUTTON_DECIDE_IMG_PATH, MENU_DECIDE_X_CRD, MENU_DECIDE_Y_CRD);
+    mlcd.displayJpgImageCoordinate(COMMON_BUTTON_DOWN_IMG_PATH, MENU_DOWN_X_CRD, MENU_DOWN_Y_CRD);
+    mlcd.displayJpgImageCoordinate(MENU_WBGT_FOCUS_IMG_PATH, MENU_WBGT_X_CRD, MENU_WBGT_Y_CRD);
+    setFocusState(MENU_WBGT);
 }
 
 void AppControl::focusChangeImg(FocusState current_state, FocusState next_state)
 {
+    setFocusState(next_state);
+
+    switch (current_state)
+    {
+    case MENU_WBGT:
+        mlcd.displayJpgImageCoordinate(MENU_WBGT_IMG_PATH, MENU_WBGT_X_CRD, MENU_WBGT_Y_CRD);
+        break;
+    case MENU_MUSIC:
+        mlcd.displayJpgImageCoordinate(MENU_MUSIC_IMG_PATH, MENU_MUSIC_X_CRD, MENU_MUSIC_Y_CRD);
+        break;
+    case MENU_MEASURE:
+        mlcd.displayJpgImageCoordinate(MENU_MEASURE_IMG_PATH, MENU_MEASURE_X_CRD, MENU_MEASURE_Y_CRD);
+        break;
+    case MENU_DATE:
+        mlcd.displayJpgImageCoordinate(MENU_DATE_IMG_PATH, MENU_DATE_X_CRD, MENU_DATE_Y_CRD);
+        break;
+    }
+
+    switch (next_state)
+    {
+    case MENU_WBGT:
+        mlcd.displayJpgImageCoordinate(MENU_WBGT_FOCUS_IMG_PATH, MENU_WBGT_X_CRD, MENU_WBGT_Y_CRD);
+        break;
+    case MENU_MUSIC:
+        mlcd.displayJpgImageCoordinate(MENU_MUSIC_FOCUS_IMG_PATH, MENU_MUSIC_X_CRD, MENU_MUSIC_Y_CRD);
+        break;
+    case MENU_MEASURE:
+        mlcd.displayJpgImageCoordinate(MENU_MEASURE_FOCUS_IMG_PATH, MENU_MEASURE_X_CRD, MENU_MEASURE_Y_CRD);
+        break;
+    case MENU_DATE:
+        mlcd.displayJpgImageCoordinate(MENU_DATE_FOCUS_IMG_PATH, MENU_DATE_X_CRD, MENU_DATE_Y_CRD);
+        break;
+    }
 }
 
 void AppControl::displayWBGTInit()
 {
+    mlcd.clearDisplay();
+    mlcd.fillBackgroundWhite();
+    mlcd.displayJpgImageCoordinate(WBGT_TEMPERATURE_IMG_PATH, WBGT_TEMPERATURE_X_CRD, WBGT_TEMPERATURE_Y_CRD);
+    mlcd.displayJpgImageCoordinate(COMMON_ORANGEDOT_IMG_PATH, WBGT_TDOT_X_CRD, WBGT_TDOT_Y_CRD);
+    mlcd.displayJpgImageCoordinate(WBGT_HUMIDITY_IMG_PATH, WBGT_HUMIDITY_X_CRD, WBGT_HUMIDITY_Y_CRD);
+    mlcd.displayJpgImageCoordinate(COMMON_BLUEDOT_IMG_PATH, WBGT_HDOT_X_CRD, WBGT_HDOT_Y_CRD);
+    mlcd.displayJpgImageCoordinate(WBGT_DEGREE_IMG_PATH, WBGT_DEGREE_X_CRD, WBGT_DEGREE_Y_CRD);
+    mlcd.displayJpgImageCoordinate(WBGT_PERCENT_IMG_PATH, WBGT_PERCENT_X_CRD, WBGT_PERCENT_Y_CRD);
+    mlcd.displayJpgImageCoordinate(COMMON_BUTTON_BACK_IMG_PATH, WBGT_BACK_X_CRD, WBGT_BACK_Y_CRD);
+    displayTempHumiIndex();
 }
 
 void AppControl::displayTempHumiIndex()
 {
+    mwbgt.init();
+    double temperature;
+    double humidity;
+    WbgtIndex index;
+    mwbgt.getWBGT(&temperature, &humidity, &index);
+
+    int temp = (int)(temperature * 10);
+    int humi = (int)(humidity * 10);
+
+    int tempBox = temp / 100; // 温度の十の位の数字を代入
+    int tempCount = temp % 100;
+    int tempCount2 = tempCount / 10;                                                                      // 温度の一の位の数字を代入
+    int tempCount3 = tempCount % 10;                                                                      // 温度の小数第一位の数字を代入
+    mlcd.displayJpgImageCoordinate(g_str_orange[tempBox], WBGT_T2DIGIT_X_CRD, WBGT_T2DIGIT_Y_CRD);        // 温度の十の位の数字を表示
+    mlcd.displayJpgImageCoordinate(g_str_orange[tempCount2], WBGT_T1DIGIT_X_CRD, WBGT_T1DIGIT_Y_CRD);     // 温度の一の位の数字を表示
+    mlcd.displayJpgImageCoordinate(g_str_orange[tempCount3], WBGT_T1DECIMAL_X_CRD, WBGT_T1DECIMAL_Y_CRD); // 温度の小数第一位の数字を表示
+    if (tempBox == 0)
+    {
+        mlcd.displayJpgImageCoordinate(COMMON_ORANGEFILLWHITE_IMG_PATH, WBGT_T2DIGIT_X_CRD, WBGT_T2DIGIT_Y_CRD); // 温度の銃の位の数字が｢0｣の場合隠す
+    }
+
+    int humiBox = humi / 100; // 湿度の10の位の数字を代入
+    int humiCount = humi % 100;
+    int humiCount2 = humiCount / 10;                                                                    // 湿度の1の位の数字を代入
+    int humiCount3 = humiCount % 10;                                                                    // 湿度のの小数第一位の数字を代入
+    mlcd.displayJpgImageCoordinate(g_str_blue[humiBox], WBGT_H2DIGIT_X_CRD, WBGT_H2DIGIT_Y_CRD);        // 湿度の10の位の数字を表示
+    mlcd.displayJpgImageCoordinate(g_str_blue[humiCount2], WBGT_H1DIGIT_X_CRD, WBGT_H1DIGIT_Y_CRD);     // 湿度の1の位の数字を表示
+    mlcd.displayJpgImageCoordinate(g_str_blue[humiCount3], WBGT_H1DECIMAL_X_CRD, WBGT_H1DECIMAL_Y_CRD); // 湿度のの小数第一位の数字を表示
+    if (humiBox == 0)
+    {
+        mlcd.displayJpgImageCoordinate(COMMON_BLUEFILLWHITE_IMG_PATH, WBGT_T2DIGIT_X_CRD, WBGT_T2DIGIT_Y_CRD); // 温度の銃の位の数字が｢0｣の場合隠す
+    }
+
+    switch (index)
+    {
+    case SAFE:
+        mlcd.displayJpgImageCoordinate(WBGT_SAFE_IMG_PATH, WBGT_NOTICE_X_CRD, WBGT_NOTICE_Y_CRD);
+        break;
+    case ATTENTION:
+        mlcd.displayJpgImageCoordinate(WBGT_ATTENTION_IMG_PATH, WBGT_NOTICE_X_CRD, WBGT_NOTICE_Y_CRD);
+        break;
+    case ALERT:
+        mlcd.displayJpgImageCoordinate(WBGT_ALERT_IMG_PATH, WBGT_NOTICE_X_CRD, WBGT_NOTICE_Y_CRD);
+        break;
+    case HIGH_ALERT:
+        mlcd.displayJpgImageCoordinate(WBGT_HIGH_ALERT_IMG_PATH, WBGT_NOTICE_X_CRD, WBGT_NOTICE_Y_CRD);
+        break;
+    case DANGER:
+        mlcd.displayJpgImageCoordinate(WBGT_DANGER_IMG_PATH, WBGT_NOTICE_X_CRD, WBGT_NOTICE_Y_CRD);
+        break;
+    }
 }
 
 void AppControl::displayMusicInit()
 {
+    mlcd.clearDisplay();
+    mlcd.fillBackgroundWhite();
+    displayMusicStop();
 }
 
 void AppControl::displayMusicStop()
 {
+    mlcd.displayJpgImageCoordinate(MUSIC_NOWSTOPPING_IMG_PATH, MUSIC_NOTICE_X_CRD, MUSIC_NOTICE_Y_CRD);
+    mlcd.displayJpgImageCoordinate(COMMON_BUTTON_PLAY_IMG_PATH, MUSIC_PLAY_X_CRD, MUSIC_PLAY_Y_CRD);
+    mlcd.displayJpgImageCoordinate(COMMON_BUTTON_BACK_IMG_PATH, MUSIC_BACK_X_CRD, MUSIC_BACK_Y_CRD);
+    mlcd.displayJpgImageCoordinate(COMMON_BUTTON_NEXT_IMG_PATH, MUSIC_NEXT_X_CRD, MUSIC_NEXT_Y_CRD);
+    displayMusicTitle();
 }
 
 void AppControl::displayMusicTitle()
 {
+    char *title = mmplay.getTitle();
+    mlcd.displayText(title, MUSIC_TITLE_X_CRD, MUSIC_TITLE_Y_CRD);
 }
 
 void AppControl::displayNextMusic()
 {
+    mlcd.displayText("               ", MUSIC_TITLE_X_CRD, MUSIC_TITLE_Y_CRD);
+    mmplay.selectNextMusic();
+    displayMusicTitle();
 }
 
 void AppControl::displayMusicPlay()
 {
+    mlcd.clearDisplay();
+    mlcd.fillBackgroundWhite();
+    mlcd.displayJpgImageCoordinate(MUSIC_NOWPLAYING_IMG_PATH, MUSIC_NOTICE_X_CRD, MUSIC_NOTICE_Y_CRD);
+    mlcd.displayJpgImageCoordinate(COMMON_BUTTON_STOP_IMG_PATH, MUSIC_STOP_X_CRD, MUSIC_STOP_Y_CRD);
+    displayMusicTitle();
 }
 
 void AppControl::displayMeasureInit()
 {
+    mlcd.clearDisplay();
+    mlcd.fillBackgroundWhite();
+    mlcd.displayJpgImageCoordinate(MEASURE_NOTICE_IMG_PATH, MEASURE_NOTICE_X_CRD, MEASURE_NOTICE_Y_CRD);
+    mlcd.displayJpgImageCoordinate(MEASURE_CM_IMG_PATH, MEASURE_CM_X_CRD, MEASURE_CM_Y_CRD);
+    mlcd.displayJpgImageCoordinate(COMMON_BUTTON_BACK_IMG_PATH, MEASURE_BACK_X_CRD, MEASURE_BACK_Y_CRD);
+    displayMeasureDistance();
 }
 
 void AppControl::displayMeasureDistance()
 {
+    int dis = (int)(mmdist.getDistance() * 10);
+
+    int disBox = dis / 1000; // 距離の百の位の数字を代入
+    int disCount = dis % 1000;
+    int disCount2 = disCount / 100; // 距離の十の位の数字を代入
+    Serial.println("dis : " + dis);
+    disCount = disCount % 100;
+    int disCount3 = disCount / 10; // 距離の少数第一の位の数字を代入
+    int disCount4 = disCount % 10; // 距離の少数第一の位の数字を代入
+
+    if (20 < dis && dis < 4500)
+    {
+        if (disBox == 0 && disCount2 == 0)
+        {
+            mlcd.displayJpgImageCoordinate(COMMON_BLUEFILLWHITE_IMG_PATH, MEASURE_DIGIT3_X_CRD, MEASURE_DIGIT3_Y_CRD);
+            mlcd.displayJpgImageCoordinate(COMMON_BLUEFILLWHITE_IMG_PATH, MEASURE_DIGIT2_X_CRD, MEASURE_DIGIT2_Y_CRD);
+            mlcd.displayJpgImageCoordinate(g_str_blue[disCount3], MEASURE_DIGIT1_X_CRD, MEASURE_DIGIT1_Y_CRD);
+            mlcd.displayJpgImageCoordinate(COMMON_BLUEDOT_IMG_PATH, MEASURE_DOT_X_CRD, MEASURE_DOT_Y_CRD);
+            mlcd.displayJpgImageCoordinate(g_str_blue[disCount4], MEASURE_DECIMAL_X_CRD, MEASURE_DECIMAL_Y_CRD);
+        }
+        else if (disBox == 0)
+        {
+            mlcd.displayJpgImageCoordinate(COMMON_BLUEFILLWHITE_IMG_PATH, MEASURE_DIGIT3_X_CRD, MEASURE_DIGIT3_Y_CRD);
+            mlcd.displayJpgImageCoordinate(g_str_blue[disCount2], MEASURE_DIGIT2_X_CRD, MEASURE_DIGIT2_Y_CRD);
+            mlcd.displayJpgImageCoordinate(g_str_blue[disCount3], MEASURE_DIGIT1_X_CRD, MEASURE_DIGIT1_Y_CRD);
+            mlcd.displayJpgImageCoordinate(COMMON_BLUEDOT_IMG_PATH, MEASURE_DOT_X_CRD, MEASURE_DOT_Y_CRD);
+            mlcd.displayJpgImageCoordinate(g_str_blue[disCount4], MEASURE_DECIMAL_X_CRD, MEASURE_DECIMAL_Y_CRD);
+        }
+        else if (disBox != 0)
+        {
+            mlcd.displayJpgImageCoordinate(g_str_blue[disBox], MEASURE_DIGIT3_X_CRD, MEASURE_DIGIT3_Y_CRD);
+            mlcd.displayJpgImageCoordinate(g_str_blue[disCount2], MEASURE_DIGIT2_X_CRD, MEASURE_DIGIT2_Y_CRD);
+            mlcd.displayJpgImageCoordinate(g_str_blue[disCount3], MEASURE_DIGIT1_X_CRD, MEASURE_DIGIT1_Y_CRD);
+            mlcd.displayJpgImageCoordinate(COMMON_BLUEDOT_IMG_PATH, MEASURE_DOT_X_CRD, MEASURE_DOT_Y_CRD);
+            mlcd.displayJpgImageCoordinate(g_str_blue[disCount4], MEASURE_DECIMAL_X_CRD, MEASURE_DECIMAL_Y_CRD);
+        }
+    }
 }
 
 void AppControl::displayDateInit()
 {
+    mlcd.clearDisplay();
+    mlcd.fillBackgroundWhite();
+    mlcd.displayJpgImageCoordinate(DATE_NOTICE_IMG_PATH, DATE_NOTICE_X_CRD, DATE_NOTICE_Y_CRD);
+    mlcd.displayJpgImageCoordinate(COMMON_BUTTON_BACK_IMG_PATH, DATE_BACK_X_CRD, DATE_BACK_Y_CRD);
 }
 
 void AppControl::displayDateUpdate()
 {
+    String date = mdtime.readDate();
+    mlcd.displayDateText(date, DATE_YYYYMMDD_X_CRD, DATE_YYYYMMDD_Y_CRD);
+    String time = mdtime.readTime();
+    mlcd.displayDateText(time, DATE_HHmmSS_X_CRD, DATE_HHmmSS_Y_CRD);
 }
 
 void AppControl::controlApplication()
 {
 
-mmplay.init();
+    mmplay.init();
 
-    while (1) {
+    while (1)
+    {
 
-        switch (getState()) {
+        switch (getState())
+        {
         case TITLE:
-            switch (getAction()) {
+            switch (getAction())
+            {
             case ENTRY:
                 /*
                 ** まずはここにタイトル画面の表示処理を呼び出してみよう。
@@ -166,18 +343,19 @@ mmplay.init();
                 ** この関数の中身はまだ何もないので、この関数にタイトル画面表示処理を書いてみよう。
                 */
                 displayTitleInit();
-                setStateMachine(TITLE,DO);
+                setStateMachine(TITLE, DO);
                 break;
 
             case DO:
-    if(m_flag_btnA_is_pressed||m_flag_btnB_is_pressed||m_flag_btnC_is_pressed){
-            setStateMachine(TITLE,EXIT);
-            setBtnAllFlgFalse();
-}
+                if (m_flag_btnA_is_pressed || m_flag_btnB_is_pressed || m_flag_btnC_is_pressed)
+                {
+                    setStateMachine(TITLE, EXIT);
+                    setBtnAllFlgFalse();
+                }
                 break;
 
             case EXIT:
-            setStateMachine(MENU,ENTRY);
+                setStateMachine(MENU, ENTRY);
                 break;
 
             default:
@@ -187,19 +365,106 @@ mmplay.init();
             break;
 
         case MENU:
-
-            switch (getAction()) {
+            switch (getAction())
+            {
             case ENTRY:
-
-                break; 
+                displayMenuInit();
+                setStateMachine(MENU, DO);
+                break;
 
             case DO:
 
+                switch (getFocusState())
+                {
+                case MENU_WBGT:
+                    if (m_flag_btnA_is_pressed)
+                    {
+                        focusChangeImg(MENU_WBGT, MENU_DATE);
+                        setBtnAllFlgFalse();
+                    }
+                    else if (m_flag_btnB_is_pressed)
+                    {
+                        setStateMachine(MENU, EXIT);
+                        setBtnAllFlgFalse();
+                    }
+                    else if (m_flag_btnC_is_pressed)
+                    {
+                        focusChangeImg(MENU_WBGT, MENU_MUSIC);
+                        setBtnAllFlgFalse();
+                    }
+                    break;
+                case MENU_MUSIC:
+                    if (m_flag_btnA_is_pressed)
+                    {
+                        focusChangeImg(MENU_MUSIC, MENU_WBGT);
+                        setBtnAllFlgFalse();
+                    }
+                    else if (m_flag_btnB_is_pressed)
+                    {
+                        setStateMachine(MENU, EXIT);
+                        setBtnAllFlgFalse();
+                    }
+                    else if (m_flag_btnC_is_pressed)
+                    {
+                        focusChangeImg(MENU_MUSIC, MENU_MEASURE);
+                        setBtnAllFlgFalse();
+                    }
+                    break;
+                case MENU_MEASURE:
+                    if (m_flag_btnA_is_pressed)
+                    {
+                        focusChangeImg(MENU_MEASURE, MENU_MUSIC);
+                        setBtnAllFlgFalse();
+                    }
+                    else if (m_flag_btnB_is_pressed)
+                    {
+                        setStateMachine(MENU, EXIT);
+                        setBtnAllFlgFalse();
+                    }
+                    else if (m_flag_btnC_is_pressed)
+                    {
+                        focusChangeImg(MENU_MEASURE, MENU_DATE);
+                        setBtnAllFlgFalse();
+                    }
+                    break;
+                case MENU_DATE:
+                    if (m_flag_btnA_is_pressed)
+                    {
+                        focusChangeImg(MENU_DATE, MENU_MEASURE);
+                        setBtnAllFlgFalse();
+                    }
+                    else if (m_flag_btnB_is_pressed)
+                    {
+                        setStateMachine(MENU, EXIT);
+                        setBtnAllFlgFalse();
+                    }
+                    else if (m_flag_btnC_is_pressed)
+                    {
+                        focusChangeImg(MENU_DATE, MENU_WBGT);
+                        setBtnAllFlgFalse();
+                    }
+                    break;
+                }
                 break;
 
             case EXIT:
-
+                switch (getFocusState())
+                {
+                case MENU_WBGT:
+                    setStateMachine(WBGT, ENTRY);
+                    break;
+                case MENU_MUSIC:
+                    setStateMachine(MUSIC_STOP, ENTRY);
+                    break;
+                case MENU_MEASURE:
+                    setStateMachine(MEASURE, ENTRY);
+                    break;
+                case MENU_DATE:
+                    setStateMachine(DATE, ENTRY);
+                    break;
+                }
             default:
+
                 break;
             }
 
@@ -207,15 +472,28 @@ mmplay.init();
 
         case WBGT:
 
-            switch (getAction()) {
+            switch (getAction())
+            {
             case ENTRY:
-
+                displayWBGTInit();
+                displayTempHumiIndex();
+                setStateMachine(WBGT, DO);
                 break;
 
             case DO:
+                displayTempHumiIndex();
+                delay(100);
+
+                if (m_flag_btnB_is_pressed)
+                {
+                    setStateMachine(WBGT, EXIT);
+                    setBtnAllFlgFalse();
+                }
+
                 break;
 
             case EXIT:
+                setStateMachine(MENU, ENTRY);
                 break;
 
             default:
@@ -225,15 +503,43 @@ mmplay.init();
             break;
 
         case MUSIC_STOP:
-            switch (getAction()) {
+            switch (getAction())
+            {
             case ENTRY:
+                displayMusicInit();
+                setStateMachine(MUSIC_STOP, DO);
                 break;
 
             case DO:
+                if (m_flag_btnA_is_pressed)
+                {
+                    setStateMachine(MUSIC_STOP, EXIT);
+                }
+                else if (m_flag_btnB_is_pressed)
+                {
+                    setStateMachine(MUSIC_STOP, EXIT);
+                }
+                else if (m_flag_btnC_is_pressed)
+                {
+                    displayNextMusic();
+                    setBtnAllFlgFalse();
+                }
+
                 break;
 
             case EXIT:
-                break;
+                if (m_flag_btnA_is_pressed)
+                {
+                    setStateMachine(MUSIC_PLAY, ENTRY);
+                    setBtnAllFlgFalse();
+                    break;
+                }
+                else if (m_flag_btnB_is_pressed)
+                {
+                    setStateMachine(MENU, ENTRY);
+                    setBtnAllFlgFalse();
+                    break;
+                }
 
             default:
                 break;
@@ -243,14 +549,26 @@ mmplay.init();
 
         case MUSIC_PLAY:
 
-            switch (getAction()) {
+            switch (getAction())
+            {
             case ENTRY:
+                displayMusicPlay();
+                mmplay.prepareMP3();
+                mmplay.playMP3();
+                setStateMachine(MUSIC_PLAY, DO);
                 break;
 
             case DO:
+                if (m_flag_btnA_is_pressed || !mmplay.playMP3())
+                {
+                    mmplay.stopMP3();
+                    setStateMachine(MUSIC_PLAY, EXIT);
+                }
                 break;
 
             case EXIT:
+                setStateMachine(MUSIC_STOP, ENTRY);
+                setBtnAllFlgFalse();
                 break;
 
             default:
@@ -261,14 +579,25 @@ mmplay.init();
 
         case MEASURE:
 
-            switch (getAction()) {
+            switch (getAction())
+            {
             case ENTRY:
+                displayMeasureInit();
+                setStateMachine(MEASURE, DO);
                 break;
 
             case DO:
+                displayMeasureDistance();
+                delay(250);
+                if (m_flag_btnB_is_pressed)
+                {
+                    setStateMachine(MEASURE, EXIT);
+                    setBtnAllFlgFalse();
+                }
                 break;
 
             case EXIT:
+                setStateMachine(MENU, ENTRY);
                 break;
 
             default:
@@ -279,14 +608,28 @@ mmplay.init();
 
         case DATE:
 
-            switch (getAction()) {
+            switch (getAction())
+            {
             case ENTRY:
+                displayDateInit();
+                setStateMachine(DATE, DO);
+
                 break;
 
             case DO:
+                displayDateUpdate();
+                delay(100);
+
+                if (m_flag_btnB_is_pressed)
+                {
+                    setStateMachine(DATE, EXIT);
+                    setBtnAllFlgFalse();
+                }
+
                 break;
 
             case EXIT:
+                setStateMachine(MENU, ENTRY);
                 break;
 
             default:
